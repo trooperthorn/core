@@ -62,6 +62,7 @@ ATTR_NEIGHBORS = "neighbors"
 @callback
 def async_register_api(hass):
     """Register all of our api endpoints."""
+    websocket_api.async_register_command(hass, websocket_migrate_zwave)
     websocket_api.async_register_command(hass, websocket_get_instances)
     websocket_api.async_register_command(hass, websocket_get_nodes)
     websocket_api.async_register_command(hass, websocket_network_status)
@@ -126,7 +127,7 @@ def _call_util_function(hass, connection, msg, send_result, function, *args):
         vol.Optional(DRY_RUN, default=True): vol.Coerce(bool),
     }
 )
-async def migrate_zwave(hass, connection, msg):
+async def websocket_migrate_zwave(hass, connection, msg):
     """Migrate the zwave integration device and entity data to ozw integration."""
     if "zwave" not in hass.config.components:
         _LOGGER.error("Can not migrate, zwave integration is not loaded")
