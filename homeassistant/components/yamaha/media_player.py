@@ -272,11 +272,6 @@ class YamahaDevice(MediaPlayerEntity):
     def is_volume_muted(self):
         """Boolean if volume is currently muted."""
         return self._muted
-    
-    @property
-    def supported_features(self):
-        """Return media player features that are supported."""
-        return SUPPORT_YAMAHA
         
     @property
     def source(self):
