@@ -298,6 +298,75 @@ class YamahaDevice(MediaPlayerEntity):
         """Return a zone_id to ensure 1 media player per zone."""
         return f"{self.receiver.ctrl_url}:{self._zone}"
 
+class YamahaDeviceZone(YamahaDevice):
+    """Representation of an Yamaha device's extra zone."""
+
+    def __init__(
+        self,
+        zone,
+        receiver,
+        sources,
+        name=None,
+        max_volume=SUPPORTED_MAX_VOLUME,
+        receiver_max_volume=DEFAULT_RECEIVER_MAX_VOLUME,
+    ):
+        """Initialize the Zone with the zone identifier."""
+        self._zone = zone
+        self._supports_volume = True
+        super().__init__(receiver, sources, name, max_volume, receiver_max_volume)
+
+    def update(self):
+        """Get the latest state from the device."""
+        status = self.command(f"zone{self._zone}.power=query")
+
+        if not status:
+            return
+        if status[1] == "on":
+            self._pwstate = STATE_ON
+        else:
+            self._pwstate = STATE_OFF
+            return
+
+        volume_raw = self.command(f"zone{self._zone}.volume=query")
+        mute_raw = self.command(f"zone{self._zone}.muting=query")
+        current_source_raw = self.command(f"zone{self._zone}.selector=query")
+        preset_raw = self.command(f"zone{self._zone}.preset=query")
+        # If we received a source value, but not a volume value
+        # it's likely this zone permanently does not support volume.
+        if current_source_raw and not volume_raw:
+            self._supports_volume = False
+
+        if not (volume_raw and mute_raw and current_source_raw):
+            return
+
+        # It's possible for some players to have zones set to HDMI with
+        # no sound control. In this case, the string `N/A` is returned.
+        self._supports_volume = isinstance(volume_raw[1], (float, int))
+
+        # eiscp can return string or tuple. Make everything tuples.
+        if isinstance(current_source_raw[1], str):
+            current_source_tuples = (current_source_raw[0], (current_source_raw[1],))
+        else:
+            current_source_tuples = current_source_raw
+
+        for source in current_source_tuples[1]:
+            if source in self._source_mapping:
+                self._current_source = self._source_mapping[source]
+                break
+            self._current_source = "_".join(current_source_tuples[1])
+        self._muted = bool(mute_raw[1] == "on")
+        if preset_raw and self._current_source.lower() == "radio":
+            self._attributes[ATTR_PRESET] = preset_raw[1]
+        elif ATTR_PRESET in self._attributes:
+            del self._attributes[ATTR_PRESET]
+        if self._supports_volume:
+            # AMP_VOL/MAX_RECEIVER_VOL*(MAX_VOL/100)
+            self._volume = (
+                volume_raw[1] / self._receiver_max_volume * (self._max_volume / 100)
+            )
+        
+        
+        
     @property
     def supported_features(self):
         """Flag media player features that are supported."""
