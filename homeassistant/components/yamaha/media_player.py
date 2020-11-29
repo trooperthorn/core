@@ -76,6 +76,8 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
     {
         vol.Optional(CONF_NAME, default=DEFAULT_NAME): cv.string,
         vol.Optional(CONF_HOST): cv.string,
+        vol.Optional(CONF_MAX_VOLUME, default=SUPPORTED_MAX_VOLUME): vol.All(
+            vol.Coerce(int), vol.Range(min=1, max=100)
         vol.Optional(CONF_SOURCE_IGNORE, default=[]): vol.All(
             cv.ensure_list, [cv.string]
         ),
