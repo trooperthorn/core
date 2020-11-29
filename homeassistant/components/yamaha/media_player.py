@@ -58,6 +58,15 @@ SUPPORT_YAMAHA = (
     | SUPPORT_SELECT_SOUND_MODE
 )
 
+SUPPORT_YAMAHA_WO_VOLUME = (
+    SUPPORT_TURN_ON
+    | SUPPORT_TURN_OFF
+    | SUPPORT_SELECT_SOURCE
+    | SUPPORT_PLAY
+    | SUPPORT_PLAY_MEDIA
+)
+
+
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
     {
         vol.Optional(CONF_NAME, default=DEFAULT_NAME): cv.string,
@@ -263,7 +272,12 @@ class YamahaDevice(MediaPlayerEntity):
     def is_volume_muted(self):
         """Boolean if volume is currently muted."""
         return self._muted
-
+    
+    @property
+    def supported_features(self):
+        """Return media player features that are supported."""
+        return SUPPORT_YAMAHA
+        
     @property
     def source(self):
         """Return the current input source."""
@@ -292,7 +306,9 @@ class YamahaDevice(MediaPlayerEntity):
     @property
     def supported_features(self):
         """Flag media player features that are supported."""
-        supported_features = SUPPORT_YAMAHA
+        if self._supports_volume:
+            return SUPPORT_YAMAHA
+        return SUPPORT_YAMAHA_WO_VOLUME
 
         supports = self._playback_support
         mapping = {
