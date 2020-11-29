@@ -44,9 +44,14 @@ CONF_SOURCE_IGNORE = "source_ignore"
 CONF_SOURCE_NAMES = "source_names"
 CONF_ZONE_IGNORE = "zone_ignore"
 CONF_ZONE_NAMES = "zone_names"
+CONF_MAX_VOLUME = "max_volume"
+CONF_RECEIVER_MAX_VOLUME = "receiver_max_volume"
+
 
 DATA_YAMAHA = "yamaha_known_receivers"
 DEFAULT_NAME = "Yamaha Receiver"
+SUPPORTED_MAX_VOLUME = 100
+DEFAULT_RECEIVER_MAX_VOLUME = 80
 
 SUPPORT_YAMAHA = (
     SUPPORT_VOLUME_SET
